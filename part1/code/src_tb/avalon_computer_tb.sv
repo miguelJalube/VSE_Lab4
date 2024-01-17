@@ -26,7 +26,7 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
     export "DPI-C" task avalon_read;
 
     task avalon_write(int unsigned address, int unsigned byteenable, int unsigned data);
-        $display("Starting a write command");
+        $display("[SV] write %05d at 0x%05x   time:%t", data, address, $time);
         write_i = 1;
         address_i = address;
         byteenable_i = byteenable;
@@ -39,7 +39,6 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
     endtask
 
     task avalon_read(int unsigned address, int unsigned byteenable, output int unsigned data);
-        $display("Starting a read command");
         read_i = 1;
         address_i = address;
         byteenable_i = byteenable;
@@ -47,6 +46,7 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
         wait(readdatavalid_o == 1);
         data = readdata_o;
         @(posedge clk_i);
+        $display("[SV] read %05d at 0x%05x   time:%t", data, address, $time);
         
         read_i = 0;
     endtask
@@ -66,6 +66,25 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
         rst_i = 0;
     endtask
 
+    int unsigned i = 0;
+
+    task watchdog(int unsigned timeout = 100);
+        // if 1000 cycles without read or write, end simulation
+        // reset timeout if read or write
+
+        while(1) begin
+            @(posedge clk_i);
+            i++;
+            if(!($stable(read_i) && $stable(write_i))) begin
+                i = 0;
+            end;
+            if(i > timeout) begin
+                $display("ouaf at %t ns", $time);
+                $stop();
+            end;
+        end;
+    endtask
+
 
     // Make C function visible to SystemVerilog code
     import "DPI-C" context task CTask();
@@ -76,9 +95,15 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
             apply_reset();
         join
 
-        @(posedge clk_i);
-        @(posedge clk_i);
+        fork
+            watchdog();
+            CTask();
+        join_any
 
+        @(posedge clk_i);
+        @(posedge clk_i);
+        
+        /*
         if (0) begin
             automatic int unsigned data;
             avalon_write(0, 3, 5);
@@ -87,9 +112,9 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
                 $error("Aie aie aie");
             end
         end
+        */
 
-        CTask();
-        $finish();
+        $stop();
     end
 
 endmodule
