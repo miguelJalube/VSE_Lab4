@@ -27,12 +27,28 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
 
     task avalon_write(int unsigned address, int unsigned byteenable, int unsigned data);
         $display("Starting a write command");
-        // TODO : Well, let's write
+        write_i = 1;
+        address_i = address;
+        byteenable_i = byteenable;
+        writedata_i = data;
+
+        wait(waitrequest_o == 0);
+        @(posedge clk_i);
+        write_i = 0;
+
     endtask
 
     task avalon_read(int unsigned address, int unsigned byteenable, output int unsigned data);
         $display("Starting a read command");
-        // TODO : Well, let's read
+        read_i = 1;
+        address_i = address;
+        byteenable_i = byteenable;
+
+        wait(readdatavalid_o == 1);
+        data = readdata_o;
+        @(posedge clk_i);
+        
+        read_i = 0;
     endtask
 
     task init_signals();
