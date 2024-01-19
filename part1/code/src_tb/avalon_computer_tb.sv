@@ -42,6 +42,10 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
         wait(waitrequest_o == 0);
         @(posedge clk_i);
         write_i = 0;
+        address_i = 0;
+        byteenable_i = 0;
+        writedata_i = 0;
+        @(negedge clk_i);
 
     endtask
 
@@ -49,14 +53,17 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
         read_i = 1;
         address_i = address;
         byteenable_i = byteenable;
-
         @(posedge clk_i);
-
-        wait(readdatavalid_o == 1);
+        while (waitrequest_o) begin
+            @(posedge clk_i);
+        end
         data = readdata_o;
-        read_i = 0;
         $display("[SV] read  %05d at 0x%05x   time:%t", data, address, $time);
-        wait(readdatavalid_o == 0);
+        @(posedge clk_i);
+        read_i = 0;
+        address_i = 0;
+        byteenable_i = 0;
+        @(posedge clk_i);
     endtask
 
     task init_signals();

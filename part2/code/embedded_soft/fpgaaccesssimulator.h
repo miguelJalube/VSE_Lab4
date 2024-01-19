@@ -5,6 +5,8 @@
 
 class FPGAAccess
 {
+    uint32_t nbCompute;
+
 public:
     static FPGAAccess& getInstance();
 

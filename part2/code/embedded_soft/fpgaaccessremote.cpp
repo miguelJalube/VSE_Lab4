@@ -143,6 +143,94 @@ uint32_t fpga_compute(uint32_t a, uint32_t b, uint32_t c)
 
 }
 
+uint32_t fpga_read(uint32_t addr)
+{
+    char client_message[2000];
+    int read_size;
+    // Prepare response
+    std::stringstream stream;
+    stream << "{rd:" << addr << "}\n";
+
+    std::string message = stream.str();
+    write(sock, message.data(), strlen(message.data()));
+
+    //Receive a message from client
+    while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
+    {
+        //end of string marker
+        client_message[read_size] = '\0';
+
+        std::cout << "Received from FPGA: " << client_message << std::endl;
+
+        std::string result = client_message;
+        auto p = result.find_first_of(":");
+        auto valueS = result.substr(p+1);
+        uint32_t value = atol(valueS.data());
+
+
+        return value;
+        //clear the message buffer
+        memset(client_message, 0, 2000);
+    }
+
+    if(read_size == 0)
+    {
+        puts("Client disconnected");
+        fflush(stdout);
+    }
+    else if(read_size == -1)
+    {
+        perror("recv failed");
+    }
+
+    return 0;
+
+}
+
+uint32_t fpga_write(uint32_t addr, uint32_t val)
+{
+    char client_message[2000];
+    int read_size;
+    // Prepare response
+    std::stringstream stream;
+    stream << "{wr:" << addr << "," << val << "}\n";
+
+    std::string message = stream.str();
+    write(sock, message.data(), strlen(message.data()));
+
+    //Receive a message from client
+    while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
+    {
+        //end of string marker
+        client_message[read_size] = '\0';
+
+        std::cout << "Received from FPGA: " << client_message << std::endl;
+
+        std::string result = client_message;
+        auto p = result.find_first_of(":");
+        auto valueS = result.substr(p+1);
+        uint32_t value = atol(valueS.data());
+
+
+        return value;
+        //clear the message buffer
+        memset(client_message, 0, 2000);
+    }
+
+    if(read_size == 0)
+    {
+        puts("Client disconnected");
+        fflush(stdout);
+    }
+    else if(read_size == -1)
+    {
+        perror("recv failed");
+    }
+
+    return 0;
+
+}
+
 
 
 FPGAAccess::FPGAAccess()
@@ -174,10 +262,10 @@ uint32_t FPGAAccess::compute(uint32_t a, uint32_t b, uint32_t c)
 
 uint32_t FPGAAccess::getNbCompute()
 {
-    // TODO
+    return fpga_read(6);
 }
 
 void FPGAAccess::resetNbCompute()
 {
-    // TODO
+    fpga_write(6, 0);
 }
