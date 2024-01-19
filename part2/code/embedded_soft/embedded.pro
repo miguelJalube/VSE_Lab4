@@ -18,14 +18,12 @@ LIBS += -lpthread
 
 SOURCES += \
         computationnode.cpp \
-        getnbcomputenode.cpp \
         main.cpp \
-        resetnbcomputenode.cpp
+        nbcomputenode.cpp
 
 HEADERS += \
     computationnode.h \
-    getnbcomputenode.h \
-    resetnbcomputenode.h
+    nbcomputenode.h
 
 config_fpgasimulator {
     SOURCES += fpgaaccesssimulator.cpp
@@ -33,11 +31,11 @@ config_fpgasimulator {
 }
 else {
     config_fpgaremote {
-        SOURCES += fpgaaccess.cpp
-        HEADERS += fpgaaccess.h
-    }
-    else {
         SOURCES += fpgaaccessremote.cpp
         HEADERS += fpgaaccessremote.h
+    }
+    else {
+        SOURCES += fpgaaccess.cpp
+        HEADERS += fpgaaccess.h
     }
 }

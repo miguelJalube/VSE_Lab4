@@ -25,13 +25,13 @@ public slots:
     void connect();
 
     void resultReady(uint32_t result);
-    void NbComputeReady(uint32_t nbCompute);
+    void nbComputeReady(uint32_t nbCompute);
 
 signals:
 
     void getResult(QString result);
     void changeStatus(QString status);
-    void getNbCompute(QString nbCompute);
+    void gotNbCompute(QString nbCompute);
 
 private:
     QString m_a;

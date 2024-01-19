@@ -28,14 +28,14 @@ uint32_t FPGAAccess::compute(uint32_t a, uint32_t b, uint32_t c)
 }
 
 
-uint32_t getNbCompute()
+uint32_t FPGAAccess::getNbCompute()
 {
     std::cerr << "FPGA direct access not implemented" << std::endl;
     assert(false);
     return 0;
 }
 
-void resetNbCompute()
+void FPGAAccess::resetNbCompute()
 {
     std::cerr << "FPGA direct access not implemented" << std::endl;
     assert(false);

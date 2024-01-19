@@ -5,6 +5,7 @@
 #include "pistache/router.h"
 
 #include "computationnode.h"
+#include "nbcomputenode.h"
 
 #include "fpgaaccess.h"
 
@@ -52,6 +53,9 @@ int main(int /*_argc*/, char** /*_argv*/)
 
     ComputationApiImpl computationServer(pEndpoint, pRouter);
     computationServer.setupRoutes();
+
+    NbComputeApiImpl nbComputeServer(pEndpoint, pRouter);
+    nbComputeServer.setupRoutes();
 
 
 

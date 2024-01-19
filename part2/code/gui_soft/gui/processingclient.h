@@ -11,6 +11,8 @@
 #include "restcall.h"
 
 #define COMPUTATION_URL "computation"
+#define NBCOMPUTE_URL "nbcompute"
+#define RESETNBCOMPUTE_URL "resetnbcompute"
 
 
 // Computation parameters
@@ -38,10 +40,33 @@ private:
     MathComputerProxyClient *handle;
 };
 
-// TODO : Add a Rest command for getting nb Compute
+// Configures the stimulation settings in the PS. If fire is set to true, will start immediately the stimulation.
+class RestGetNbCompute : public RESTCall {
+public:
+    RestGetNbCompute(MathComputerProxyClient *handle);
+
+public:
+    bool buildRequest(QJsonObject &_json) override;
+    void handleResponse(const QJsonObject &_json) override;
+
+private:
+
+    MathComputerProxyClient *handle;
+};
 
 
-// TODO : Add a Rest command for reseting nbCompute
+class RestResetNbCompute : public RESTCall {
+public:
+    RestResetNbCompute(MathComputerProxyClient *handle);
+
+public:
+    bool buildRequest(QJsonObject &_json) override;
+    void handleResponse(const QJsonObject &_json) override;
+
+private:
+
+    MathComputerProxyClient *handle;
+};
 
 
 class MathComputer : public QObject
@@ -63,6 +88,7 @@ public slots:
 
 signals:
     void resultReady(uint32_t result);
+    void nbComputeReady(uint32_t result);
 };
 
 
@@ -83,6 +109,10 @@ public slots:
     void onResult(QNetworkReply *reply);
     Status compute(uint32_t a, uint32_t b, uint32_t c) override;
     void gotResult(uint32_t result);
+
+    void getNbCompute();
+    void resetNbCompute();
+    void gotNbCompute(uint32_t result);
 
 private slots:
     void newConnectionReady();

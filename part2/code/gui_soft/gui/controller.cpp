@@ -66,17 +66,20 @@ void Controller::resultReady(uint32_t result)
 
 void Controller::getNbCompute()
 {
-    // TODO : Implement that
+    connect();
+    client->getNbCompute();
 }
 
 void Controller::resetNbCompute()
 {
-    // TODO : Implement that
+    connect();
+    client->resetNbCompute();
 }
 
-void Controller::NbComputeReady(uint32_t nbCompute)
+void Controller::nbComputeReady(uint32_t nbCompute)
 {
-    // TODO : Implement that
+    std::cout << "Controller::nbComputeReady: " << nbCompute << std::endl;
+    emit gotNbCompute(QString("%1").arg(nbCompute));
 }
 
 void Controller::connect()
@@ -87,6 +90,9 @@ void Controller::connect()
     }
     client = new MathComputerProxyClient();
     if (!QObject::connect(client, &MathComputerProxyClient::resultReady, this, &Controller::resultReady)) {
+        std::cout << "Error with connection" << std::endl;
+    }
+    if (!QObject::connect(client, &MathComputerProxyClient::nbComputeReady, this, &Controller::nbComputeReady)) {
         std::cout << "Error with connection" << std::endl;
     }
     client->connectToHost("localhost", 12345);

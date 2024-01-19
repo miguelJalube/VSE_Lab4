@@ -1,20 +1,22 @@
-#include "computationnode.h"
+#include "nbcomputenode.h"
 
 #include "fpgaaccess.h"
 
-ComputationApi::ComputationApi(
+NbComputeApi::NbComputeApi(
         std::shared_ptr<Pistache::Http::Endpoint> _pEndpoint, std::shared_ptr<Pistache::Rest::Router> _pRouter)
     : m_httpEndpoint(_pEndpoint), m_router(_pRouter){};
 
-void ComputationApi::setupRoutes()
+void NbComputeApi::setupRoutes()
 {
     using namespace Pistache::Rest;
 
-    Routes::Post(*m_router, m_base + "/computation", Routes::bind(&ComputationApi::computeRequestsHandler, this));
-    Routes::Options(*m_router, m_base + "/computation", Routes::bind(&ComputationApi::optionsHandler, this));
+    Routes::Post(*m_router, m_base + "/nbcompute", Routes::bind(&NbComputeApi::computeRequestsHandler, this));
+    Routes::Options(*m_router, m_base + "/nbcompute", Routes::bind(&NbComputeApi::optionsHandler, this));
+    Routes::Post(*m_router, m_base + "/resetnbcompute", Routes::bind(&NbComputeApi::resetNbComputeHandler, this));
+    Routes::Options(*m_router, m_base + "/resetnbcompute", Routes::bind(&NbComputeApi::optionsHandler, this));
 }
 
-void ComputationApi::optionsHandler(
+void NbComputeApi::optionsHandler(
         const Pistache::Rest::Request& /*_request*/, Pistache::Http::ResponseWriter _response)
 {
 
@@ -35,7 +37,7 @@ void ComputationApi::optionsHandler(
     }
 }
 
-void ComputationApi::computeRequestsHandler(
+void NbComputeApi::computeRequestsHandler(
         const Pistache::Rest::Request& _request, Pistache::Http::ResponseWriter _response)
 {
 
@@ -54,7 +56,25 @@ void ComputationApi::computeRequestsHandler(
     }
 }
 
-void ComputationApi::computationApiDefaultHandler(
+void NbComputeApi::resetNbComputeHandler(const Pistache::Rest::Request &_request, Pistache::Http::ResponseWriter _response)
+{
+
+    // For CORS compatibility
+    _response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+
+    _response.headers().add<Pistache::Http::Header::ContentType>("application/xml");
+
+    try {
+        this->resetNbCcomputeRequest(_request.body(), _response);
+    }
+    catch (std::runtime_error& e) {
+        //send a 400 error
+        _response.send(Pistache::Http::Code::Bad_Request, e.what());
+        return;
+    }
+}
+
+void NbComputeApi::computationApiDefaultHandler(
         const Pistache::Rest::Request& _request, Pistache::Http::ResponseWriter _response)
 {
     UNUSED(_request);
@@ -68,40 +88,46 @@ void ComputationApi::computationApiDefaultHandler(
 
 
 
-ComputationApiImpl::ComputationApiImpl(
+NbComputeApiImpl::NbComputeApiImpl(
         std::shared_ptr<Pistache::Http::Endpoint> _pEndpoint, std::shared_ptr<Pistache::Rest::Router> _pRouter)
-    : ComputationApi(_pEndpoint, _pRouter)
+    : NbComputeApi(_pEndpoint, _pRouter)
 {
 }
 
-void ComputationApiImpl::compute_requests(const std::string& _content, Pistache::Http::ResponseWriter& _response)
+void NbComputeApiImpl::compute_requests(const std::string& _content, Pistache::Http::ResponseWriter& _response)
 {
     // Parse content
 
-    std::cout << "Computing response" << std::endl;
+    std::cout << "Request for NbCompute" << std::endl;
 
-    //std::string _content = "{\"a\":123,\"b\":45,\"c\":678}";
-    std::string s1 = _content.substr(1, _content.size() - 2);
-    auto po1 = s1.find_first_of(":");
-    auto po2 = s1.find_first_of(",");
-    std::string sa = s1.substr(po1 + 1, po2 - po1 - 1);
-    std::string s2 = s1.substr(po2 + 1);
-    po1 = s2.find_first_of(":");
-    po2 = s2.find_first_of(",");
-    std::string sb = s2.substr(po1 + 1, po2 - po1 - 1);
-    std::string s3 = s2.substr(po2 + 1);
-    po1 = s3.find_first_of(":");
-    std::string sc = s3.substr(po1 + 1);
-
-    auto a = atol(sa.data());
-    auto b = atol(sb.data());
-    auto c = atol(sc.data());
-
-    uint32_t result = FPGAAccess::getInstance().compute(a, b, c);
+    uint32_t result = FPGAAccess::getInstance().getNbCompute();
 
     // Prepare response
     std::stringstream stream;
     stream << "{\"result\":" << result << "}";
+
+
+    std::string response = stream.str();
+
+
+    std::cout << "Response: " << response << std::endl;
+
+    _response.send(Pistache::Http::Code::Ok, response);
+
+}
+
+
+void NbComputeApiImpl::resetNbCcomputeRequest(const std::string &_content, Pistache::Http::ResponseWriter &_response)
+{
+    // Parse content
+
+    std::cout << "Reset NbCompute" << std::endl;
+
+    FPGAAccess::getInstance().resetNbCompute();
+
+    // Prepare response
+    std::stringstream stream;
+    stream << "{\"result\": \"ok\"}";
 
     std::string response = stream.str();
 

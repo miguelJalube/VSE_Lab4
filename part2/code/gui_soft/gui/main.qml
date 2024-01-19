@@ -24,6 +24,12 @@ Window {
         textResult.text = resultText
     }
 
+    signal setNbCompute(string resultText)
+
+    onSetNbCompute: {
+        textNbCompute.text = resultText
+    }
+
     ColumnLayout {
 
         RowLayout {

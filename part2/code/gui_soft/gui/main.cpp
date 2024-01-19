@@ -49,6 +49,11 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    if (!QObject::connect(controller, SIGNAL(gotNbCompute(QString)), rootObject, SIGNAL(setNbCompute(QString)))) {
+        std::cout << "Error with signal-slot connection. Exiting" << std::endl;
+        return -1;
+    }
+
 #ifdef CONFIG_GUITEST
 
     controller->engine = &engine;

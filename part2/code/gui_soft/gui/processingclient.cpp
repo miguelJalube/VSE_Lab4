@@ -139,3 +139,54 @@ void MathComputerProxyClient::gotResult(uint32_t result)
 {
     emit resultReady(result);
 }
+
+void MathComputerProxyClient::getNbCompute()
+{
+    auto restCall = new RestGetNbCompute(this);
+    sendRequest(restCall);
+}
+
+void MathComputerProxyClient::resetNbCompute()
+{
+    auto restCall = new RestResetNbCompute(this);
+    sendRequest(restCall);
+}
+
+
+void MathComputerProxyClient::gotNbCompute(uint32_t nbCompute)
+{
+    emit nbComputeReady(nbCompute);
+}
+
+
+RestGetNbCompute::RestGetNbCompute(MathComputerProxyClient *handle)
+    : RESTCall(HTTPMethod::POST, NBCOMPUTE_URL), handle(handle) {}
+
+bool RestGetNbCompute::buildRequest(QJsonObject &_json) {
+    return true;
+}
+
+void RestGetNbCompute::handleResponse(const QJsonObject &_json) {
+    std::cout << "Got a response : nbCompute" << std::endl;
+
+    QJsonValue v;
+    if (checkValue(_json, "result", v)) {
+        // This is strange to extract a double, and then to cast it...
+        auto result = static_cast<uint32_t>(v.toInt());
+        handle->gotNbCompute(result);
+    }
+}
+
+
+RestResetNbCompute::RestResetNbCompute(MathComputerProxyClient *handle)
+    : RESTCall(HTTPMethod::POST, RESETNBCOMPUTE_URL), handle(handle) {}
+
+bool RestResetNbCompute::buildRequest(QJsonObject &_json) {
+    return true;
+}
+
+void RestResetNbCompute::handleResponse(const QJsonObject &_json) {
+    std::cout << "Got a response : nbCompute has been reset" << std::endl;
+    // Actually we do not need anything here
+}
+

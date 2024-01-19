@@ -1,5 +1,6 @@
-#ifndef COMPUTATIONNODE_H
-#define COMPUTATIONNODE_H
+#ifndef NBCOMPUTENODE_H
+#define NBCOMPUTENODE_H
+
 
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
@@ -7,17 +8,18 @@
 #include <pistache/router.h>
 
 
-class ComputationApi
+class NbComputeApi
 {
 public:
-    ComputationApi(
+    NbComputeApi(
             std::shared_ptr<Pistache::Http::Endpoint> _pEndpoint, std::shared_ptr<Pistache::Rest::Router> _pRouter);
-    virtual ~ComputationApi() {}
+    virtual ~NbComputeApi() {}
 
     void setupRoutes();
 
 private:
     void computeRequestsHandler(const Pistache::Rest::Request& _request, Pistache::Http::ResponseWriter _response);
+    void resetNbComputeHandler(const Pistache::Rest::Request& _request, Pistache::Http::ResponseWriter _response);
     void computationApiDefaultHandler(
             const Pistache::Rest::Request& _request, Pistache::Http::ResponseWriter _response);
     void optionsHandler(const Pistache::Rest::Request& _request, Pistache::Http::ResponseWriter _response);
@@ -31,6 +33,8 @@ private:
     /// <param name="body">Query object containing the list of requests</param>
     virtual void compute_requests(const std::string& _content, Pistache::Http::ResponseWriter& _response) = 0;
 
+    virtual void resetNbCcomputeRequest(const std::string& _content, Pistache::Http::ResponseWriter& _response) = 0;
+
 public:
     const std::string m_base = "/";
 
@@ -39,15 +43,16 @@ private:
     std::shared_ptr<Pistache::Rest::Router> m_router;
 };
 
-class ComputationApiImpl : public ComputationApi
+class NbComputeApiImpl : public NbComputeApi
 {
 public:
-    ComputationApiImpl(
+    NbComputeApiImpl(
             std::shared_ptr<Pistache::Http::Endpoint> _pEndpoint, std::shared_ptr<Pistache::Rest::Router> _pRouter);
-    ~ComputationApiImpl() override {}
+    ~NbComputeApiImpl() override {}
 
     void compute_requests(const std::string& _content, Pistache::Http::ResponseWriter& _response) override;
+    void resetNbCcomputeRequest(const std::string& _content, Pistache::Http::ResponseWriter& _response) override;
 };
 
 
-#endif // COMPUTATIONNODE_H
+#endif // NBCOMPUTENODE_H
