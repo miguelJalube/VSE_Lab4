@@ -1,4 +1,13 @@
+/*
+HEIG-VD
+2024-01-19
 
+Leandro SARAIVA MAIA
+Miguel JALUBE
+
+Labo 4 VSE
+Partie 1
+*/
 
 module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0);
 
@@ -19,8 +28,6 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
     always #5 clk_i = ~clk_i;
 
     avalon_computer#(N, ADDRSIZE, DATASIZE, ERRNO) duv(.*);
-
-
 
     export "DPI-C" task avalon_write;
     export "DPI-C" task avalon_read;
@@ -43,12 +50,13 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
         address_i = address;
         byteenable_i = byteenable;
 
+        @(posedge clk_i);
+
         wait(readdatavalid_o == 1);
         data = readdata_o;
-        @(posedge clk_i);
-        $display("[SV] read %05d at 0x%05x   time:%t", data, address, $time);
-        
         read_i = 0;
+        $display("[SV] read  %05d at 0x%05x   time:%t", data, address, $time);
+        wait(readdatavalid_o == 0);
     endtask
 
     task init_signals();
@@ -69,7 +77,7 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
     int unsigned i = 0;
 
     task watchdog(int unsigned timeout = 100);
-        // if 1000 cycles without read or write, end simulation
+        // if x cycles without read or write, end simulation
         // reset timeout if read or write
 
         while(1) begin
@@ -95,25 +103,17 @@ module avalon_computer_tb#(int N=3, int ADDRSIZE=3, int DATASIZE=16, int ERRNO=0
             apply_reset();
         join
 
+        // Start chien de garde at the same time as
+        // test suite so when an error occurs, the
+        // chien de garde will stop the program
         fork
             watchdog();
             CTask();
         join_any
 
-        @(posedge clk_i);
-        @(posedge clk_i);
-        
-        /*
-        if (0) begin
-            automatic int unsigned data;
-            avalon_write(0, 3, 5);
-            avalon_read(0, 3, data);
-            if (data != 5) begin
-                $error("Aie aie aie");
-            end
-        end
-        */
-
+        $display("====================================");
+        $display("Test bench ended gracefully at %t ns", $time);
+        $display("====================================");
         $stop();
     end
 
